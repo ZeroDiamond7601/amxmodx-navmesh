@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_AMXX_MODULE "Build AMX Mod X module library" ON)
 option(BUILD_CLI "Build standalone command-line verification tool" ON)
-option(BUILD_EDITOR "Build NavStudio standalone GUI editor" OFF)
 
 # Force 32-bit target for Linux when building AMXX module
 if(UNIX AND NOT APPLE)
@@ -102,95 +101,4 @@ if(BUILD_CLI)
     )
 endif()
 
-# Standalone GUI Editor (NavStudio) Target
-if(BUILD_EDITOR)
-    find_package(OpenGL REQUIRED)
 
-    # GLFW windowing
-    if(NOT TARGET glfw)
-        set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
-        set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
-        set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
-        if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/glfw/CMakeLists.txt)
-            add_subdirectory(third_party/glfw)
-        else()
-            include(FetchContent)
-            FetchContent_Declare(
-                glfw
-                GIT_REPOSITORY https://github.com/glfw/glfw.git
-                GIT_TAG 3.4
-            )
-            FetchContent_MakeAvailable(glfw)
-        endif()
-    endif()
-
-    # Dear ImGui (Docking branch)
-    if(NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui/imgui.cpp)
-        include(FetchContent)
-        FetchContent_Declare(
-            imgui
-            GIT_REPOSITORY https://github.com/ocornut/imgui.git
-            GIT_TAG docking
-        )
-        FetchContent_MakeAvailable(imgui)
-        set(IMGUI_DIR ${imgui_SOURCE_DIR})
-    else()
-        set(IMGUI_DIR ${CMAKE_CURRENT_SOURCE_DIR}/third_party/imgui)
-    endif()
-
-    set(IMGUI_SOURCES
-        ${IMGUI_DIR}/imgui.cpp
-        ${IMGUI_DIR}/imgui_demo.cpp
-        ${IMGUI_DIR}/imgui_draw.cpp
-        ${IMGUI_DIR}/imgui_tables.cpp
-        ${IMGUI_DIR}/imgui_widgets.cpp
-        ${IMGUI_DIR}/backends/imgui_impl_glfw.cpp
-        ${IMGUI_DIR}/backends/imgui_impl_opengl3.cpp
-    )
-
-    set(EDITOR_SOURCES
-        src/editor/main.cpp
-        src/editor/camera/camera.cpp
-        src/editor/render/shader.cpp
-        src/editor/render/bsp_renderer.cpp
-        src/editor/render/texture_manager.cpp
-        src/editor/render/image_loader.cpp
-        src/editor/render/skybox_renderer.cpp
-        src/editor/render/nav_renderer.cpp
-        src/editor/render/gizmo_renderer.cpp
-        src/editor/render/entity_renderer.cpp
-        src/editor/scene/editor_scene.cpp
-        src/editor/scene/scene_picker.cpp
-        src/editor/ui/editor_ui.cpp
-        src/editor/ui/file_dialog.cpp
-        src/editor/glad/src/glad.c
-        ${IMGUI_SOURCES}
-    )
-
-    if(WIN32)
-        list(APPEND EDITOR_SOURCES src/editor/res/nav_editor.rc)
-    endif()
-
-    add_executable(nav_editor ${EDITOR_SOURCES})
-    target_include_directories(nav_editor PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}/src
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/editor
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/editor/res
-        ${CMAKE_CURRENT_SOURCE_DIR}/src/editor/glad/include
-        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
-        ${IMGUI_DIR}
-        ${IMGUI_DIR}/backends
-    )
-    target_link_libraries(nav_editor PRIVATE
-        nav_core
-        glfw
-        OpenGL::GL
-        Threads::Threads
-    )
-
-    if(WIN32)
-        target_link_libraries(nav_editor PRIVATE comdlg32 shell32 ole32)
-        set_target_properties(nav_editor PROPERTIES OUTPUT_NAME "nav_editor")
-    endif()
-endif()

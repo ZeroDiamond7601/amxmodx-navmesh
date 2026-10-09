@@ -5,7 +5,10 @@
 [![Platform](https://img.shields.io/badge/Platform-Debian%20%7C%20Linux%20%7C%20Windows%20(x86)-brightgreen.svg)]()
 [![Compatibility](https://img.shields.io/badge/AMXX-1.8.x%20--%201.10.x%20%7C%20ReHLDS-orange.svg)]()
 
-**NavMesh Core** is a high-performance C++ module for **AMX Mod X** (GoldSrc / Counter-Strike 1.6 / Counter-Strike: Condition Zero). It provides direct, memory-mapped access to GoldSrc **`.bsp`** maps (Version 30) and Counter-Strike **`.nav`** navigation meshes (Versions 4 & 5), featuring ultra-fast collision tracing, spatial partitioning, full **A\* pathfinding** with portal smoothing, a standalone verification CLI, and **NavStudio**, a hardware-accelerated 3D desktop visualizer and mesh editor.
+**NavMesh Core** is a high-performance C++ module for **AMX Mod X** (GoldSrc / Counter-Strike 1.6 / Counter-Strike: Condition Zero). It provides direct, memory-mapped access to GoldSrc **`.bsp`** maps (Version 30) and Counter-Strike **`.nav`** navigation meshes (Versions 4 & 5), featuring ultra-fast collision tracing, spatial partitioning, full **A\* pathfinding** with portal smoothing, and a standalone verification CLI.
+
+> [!TIP]
+> **Companion 3D Editor:** For visual 3D navigation mesh editing, inspection, and auto-generation, see **[NavStudio](https://github.com/ZeroDiamond7601/NavStudio)**!
 
 ---
 
@@ -38,59 +41,13 @@
 * **Active Path Handles:** High-performance path instance management exposed directly to AMXX Pawn scripting.
 * **Asynchronous Offloaded Pathfinding:** Non-blocking worker threads handle multi-route A* calculations and dispatch results via event forwards (`nav_on_path_computed`).
 
-### NavStudio: 3D BSP Visualizer & NavMesh Editor
+### Companion 3D Editor: NavStudio
+Visual navigation mesh authoring, interactive 3D editing, and terrain inspection are hosted in the dedicated [NavStudio](https://github.com/ZeroDiamond7601/NavStudio) repository:
 * **Hardware-Accelerated 3D Viewport:** OpenGL 3.3 Core rendering with Dear ImGui docking interface.
-* **Valve Hammer Editor 3D Textured Rendering & Shading Modes (`F4`):**
-  * **Hammer 3D Textured View:** Renders full GoldSrc textures mapped onto BSP brush faces with directional sun lighting, ambient hemisphere fill, and specular highlights matching Valve Hammer Editor.
-  * **WAD3 Archive Loader & Texture Management:** Parses GoldSrc `WAD3` and `WAD2` archives (`cstrike.wad`, `halflife.wad`, etc.), decoding 4-level miptex lumps (`TYP_MIPTEX`) and 256-color RGB palettes into high-resolution 32-bit RGBA OpenGL textures with automatic mipmap generation and repeat wrapping.
-  * **Embedded & External Texture Resolution:** Automatically resolves external WAD files referenced by `worldspawn` entity `"wad"` key strings, scans map and game mod directories (`cstrike/`, `valve/`), and extracts embedded textures directly from BSP `LUMP_TEXTURES`.
-  * **Mathematical UV Projection:** Calculates exact texture coordinates per vertex using `texinfo_t` spatial vectors:
-    $$u = \frac{P \cdot \vec{s}_{xyz} + s_w}{\text{texture\_width}}, \quad v = \frac{P \cdot \vec{t}_{xyz} + t_w}{\text{texture\_height}}$$
-  * **Masked Alpha Cutouts:** Transparent alpha-test masking for `{`-prefixed textures (grates, chainlink fences, ladders, vents) discarding masked pixels for clean silhouettes without sorting artifacts.
-  * **Missing Texture Fallback:** Classic Hammer-style amber and dark slate checkerboard for missing textures so maps always render stably.
-  * **WAD Drag & Drop:** Drag and drop `.wad` files directly into the viewport or use `File -> Load Texture WAD...` to hot-load custom texture packages.
-  * **Solid Clay Shading:** Clean neutral studio clay view with GoldSrc Z-Up hemisphere lighting and brush edge outlines.
-  * **Wireframe & Ghost / X-Ray:** Wireframe edge view and translucent Ghost view to see navigation areas through complex walls and multi-story rooms.
-* **Interactive 3D Controls & Hammer Editor Tools:**
-  * **3D Position Gizmo & Arrows:** Interactive Red (+X East), Green (+Y North), and Blue (+Z Up) axis arrows and center box handle for precise dragging and elevation control.
-  * **Move / Grab (`G`):** Areas smoothly glide and track the 3D mouse cursor position on the ground plane, with optional `X`, `Y`, `Z` axis constraints.
-  * **Radial Scale Tool (`S`):** Screen-space radial scaling tool to resize area dimensions smoothly, with optional `X` or `Y` width/length constraints.
-  * **Individual Edge Manipulation:** Click and drag any of the 4 perimeter edges (North, East, South, West) to resize area bounds, just like Hammer brush faces.
-  * **Hammer Edge Extrude (`E` / Shift+Drag Edge):** Extrude any edge outward to spawn a new adjacent area automatically linked bidirectionally.
-  * **Hammer Split / Clipping Tool (`Shift+X`):** Slice any area into two connected halves along its length or width while preserving external connections.
-  * **Hammer Merge Tool (`Shift+M`):** Merge adjacent collinear areas into a single unified area quad.
-  * **Hammer 3D Ground Grid:** Viewport reference grid with configurable grid sizes from 1 to 512 units (`[` to decrease, `]` to increase), snapping toggle (`Shift+W`), and visual minor/major grid lines.
-  * **Open Recent Files:** Persistent recent file list under `File -> Open Recent` for quick access to recently edited maps and meshes.
-  * **Connect Mode (`C`):** Interactive raycast linking between areas in 3D (Left-Click for bidirectional, Shift+Click for one-way).
-  * **Rotate (`R`):** Rotate area bounding orientation 90 degrees around center.
-  * **Duplicate (`Shift+D`):** Clones selected area with a unique ID and immediately enters Move mode.
-  * **Delete (`X` / `Delete`):** Deletes area with lossless graph connection restoration via Undo.
-  * **3D Transform Gizmo:** Center axis arrows (+X Red, +Y Green, +Z Blue) and 4 corner vertex handles.
-* **Interactive Connection Manager & Connect Mode (`C`):**
-  * **Connect Mode (`C`):** Click any target area in the 3D viewport to link (Left-Click for Two-Way, Shift+Click for One-Way) with live connecting beam preview.
-  * **Inspector Manager:** One-click `[2-Way]` / `[1-Way]` reciprocity toggle buttons, jump buttons, disconnect buttons, and manual Area ID connection forms.
-* **Floor Snapping (`Space` / `S`):** Casts downward rays to the BSP collision hull to ground floating area corner vertices.
-* **GoldSrc Entity System & Hammer-Style 3D Archetypes:**
-  * **Player Spawns:** Humanoid 3D hulls (32x32x72) with head indicators and forward-facing yaw orientation arrows:
-    * Counter-Terrorist spawns (`info_player_start`) in CT Blue.
-    * Terrorist spawns (`info_player_deathmatch`) in T Red.
-    * VIP spawns (`info_vip_start`) in Cyan.
-  * **Objectives & Hostages:**
-    * Bomb targets (`info_bomb_target`, `func_bomb_target`) with hazard markers and red objective diamonds.
-    * Hostages (`hostage_entity`) with humanoid green hulls and rescue zones (`info_hostage_rescue`, `func_hostage_rescue`).
-    * Buy zones (`func_buyzone`) and escape zones (`func_escapezone`).
-  * **Light Sources:** 3D yellow diamonds/octahedrons for point lights (`light`), spotlight cones and direction vectors for `light_spot`, and ambient sun icons for `light_environment`.
-  * **Weapons & Armoury:** 3D item crates and diamonds for `armoury_entity` with automatic weapon name resolution (AK-47, M4A1, AWP, Deagle, etc.) and item count.
-  * **Ambient Audio:** Magenta emitter nodes for `ambient_generic` with sound file and volume inspect.
-  * **Brush Entities & Triggers:** Bounding volumes with wireframe edges for `func_door`, `func_button`, `func_breakable`, `func_ladder`, and `trigger_*`.
-  * **Entity Target Connections:** Visualizes cause-and-effect wiring in 3D by rendering cyan-amber linkage lines with directional mid-point arrows between triggers (`target`) and destination entities (`targetname`).
-  * **Interactive Entity Picking & Explorer:** Click entities in the 3D viewport or browse the dedicated Entities tab in the Explorer panel with quick category filter chips (`[All]`, `[Spawns]`, `[Objectives]`, `[Lights]`, `[Items]`, `[Brushes]`).
-  * **Comprehensive Property Inspector:** View classname, category, coordinates, angles, model, weapon names, and a full key-values dictionary table for selected entities.
-  * **Category Visibility Filters (`F3`):** Toggle display of spawns, objectives, lights, items, brushes, and connection lines independently.
-* **Attribute Flag Editor:** Toggle `NAV_ATTR_CROUCH`, `NAV_ATTR_JUMP`, `NAV_ATTR_PRECISE`, and `NAV_ATTR_NO_JUMP`.
-* **Place Name Manager:** Search, filter, and assign designated map locations.
-* **Undo / Redo System:** Command-pattern history stack (`Ctrl+Z` / `Ctrl+Y`) for non-destructive mesh authoring.
-* **Area Hierarchy Search:** Filterable tree view of all areas with instant camera focus (`F` key).
+* **Valve Hammer Editor 3D Textured Rendering & Shading Modes (`F4`):** Real-time GoldSrc texture mapping with WAD3 archive resolution.
+* **Interactive Hammer-Style Tools:** Shift+Extrude (`E`), Split Knife (`Shift+X` / `K`), Bridge Tool (`B`), Draw Area Marquee (`N`), Flood Fill Floor Room (`F`), Coplanar Mesh Optimizer.
+* **Entity Archetypes & Spawns:** 3D humanoid hulls for CT/T spawns, bomb sites, hostages, lights, and target wiring.
+* **Wavefront OBJ Export:** Export navigation meshes to `.obj` format for Blender, 3ds Max, or game engines.
 
 ---
 
