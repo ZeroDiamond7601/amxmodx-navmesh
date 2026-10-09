@@ -1,11 +1,10 @@
 cmake_minimum_required(VERSION 3.15)
-project(NavMeshCore VERSION 1.5.3 LANGUAGES C CXX)
+project(NavMeshCore VERSION 1.0.5 LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 option(BUILD_AMXX_MODULE "Build AMX Mod X module library" ON)
-option(BUILD_CLI "Build standalone command-line verification tool" ON)
 
 # Force 32-bit target for Linux when building AMXX module
 if(UNIX AND NOT APPLE)
@@ -91,14 +90,3 @@ if(BUILD_AMXX_MODULE)
         )
     endif()
 endif()
-
-# Standalone CLI / Verification Target
-if(BUILD_CLI)
-    add_executable(nav_cli src/cli/main.cpp)
-    target_link_libraries(nav_cli PRIVATE nav_core)
-    set_target_properties(nav_cli PROPERTIES
-        OUTPUT_NAME "nav_cli"
-    )
-endif()
-
-

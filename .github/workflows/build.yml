@@ -30,16 +30,12 @@ jobs:
       - name: Build Project
         run: cmake --build build --config Release -j$(nproc)
 
-      - name: Test CLI
-        run: ./build/nav_cli --help
-
       - name: Upload Linux Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: navmesh-linux-i386
           path: |
             build/navmesh_amxx_i386.so
-            build/nav_cli
 
   build-windows:
     name: Build Windows (Win32)
@@ -66,16 +62,12 @@ jobs:
             exit 1
           }
 
-      - name: Test CLI
-        run: .\build\Release\nav_cli.exe --help
-
       - name: Upload Windows Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: navmesh-windows-x86
           path: |
             build/Release/navmesh_amxx.dll
-            build/Release/nav_cli.exe
 
   release:
     name: Create GitHub Release

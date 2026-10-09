@@ -5,7 +5,7 @@
 [![Platform](https://img.shields.io/badge/Platform-Debian%20%7C%20Linux%20%7C%20Windows%20(x86)-brightgreen.svg)]()
 [![Compatibility](https://img.shields.io/badge/AMXX-1.8.x%20--%201.10.x%20%7C%20ReHLDS-orange.svg)]()
 
-**NavMesh Core** is a high-performance C++ module for **AMX Mod X** (GoldSrc / Counter-Strike 1.6 / Counter-Strike: Condition Zero). It provides direct, memory-mapped access to GoldSrc **`.bsp`** maps (Version 30) and Counter-Strike **`.nav`** navigation meshes (Versions 4 & 5), featuring ultra-fast collision tracing, spatial partitioning, full **A\* pathfinding** with portal smoothing, and a standalone verification CLI.
+**NavMesh Core** is a high-performance C++ module for **AMX Mod X** (GoldSrc / Counter-Strike 1.6 / Counter-Strike: Condition Zero). It provides direct, memory-mapped access to GoldSrc **`.bsp`** maps (Version 30) and Counter-Strike **`.nav`** navigation meshes (Versions 4 & 5), featuring ultra-fast collision tracing, spatial partitioning, and full **A\* pathfinding** with portal smoothing.
 
 > [!TIP]
 > **Companion 3D Editor:** For visual 3D navigation mesh editing, inspection, and auto-generation, see **[NavStudio](https://github.com/ZeroDiamond7601/NavStudio)**!
@@ -41,20 +41,15 @@
 * **Active Path Handles:** High-performance path instance management exposed directly to AMXX Pawn scripting.
 * **Asynchronous Offloaded Pathfinding:** Non-blocking worker threads handle multi-route A* calculations and dispatch results via event forwards (`nav_on_path_computed`).
 
-### Companion 3D Editor: NavStudio
-Visual navigation mesh authoring, interactive 3D editing, and terrain inspection are hosted in the dedicated [NavStudio](https://github.com/ZeroDiamond7601/NavStudio) repository:
-* **Hardware-Accelerated 3D Viewport:** OpenGL 3.3 Core rendering with Dear ImGui docking interface.
-* **Valve Hammer Editor 3D Textured Rendering & Shading Modes (`F4`):** Real-time GoldSrc texture mapping with WAD3 archive resolution.
-* **Interactive Hammer-Style Tools:** Shift+Extrude (`E`), Split Knife (`Shift+X` / `K`), Bridge Tool (`B`), Draw Area Marquee (`N`), Flood Fill Floor Room (`F`), Coplanar Mesh Optimizer.
-* **Entity Archetypes & Spawns:** 3D humanoid hulls for CT/T spawns, bomb sites, hostages, lights, and target wiring.
-* **Wavefront OBJ Export:** Export navigation meshes to `.obj` format for Blender, 3ds Max, or game engines.
+### Companion 3D Editor & Tools
+For visual 3D navigation mesh editing, inspection, and auto-generation, see **[NavStudio](https://github.com/ZeroDiamond7601/NavStudio)**, our standalone visualizer and editing suite!
 
 ---
 
 ## Directory Structure
 
 ```text
-nav_module/
+amxmodx-navmesh/
 ├── .github/
 │   └── workflows/
 │       └── build.yml               # Debian container & Windows CI workflow
@@ -68,33 +63,25 @@ nav_module/
 │   ├── bsp/
 │   │   ├── bsp_types.h             # GoldSrc BSP v30 lump definitions
 │   │   ├── bsp_file.h / .cpp       # BSP loader and ray casting engine
-│   │   └── bsp_entity.h / .cpp     # Map entity parsing
+│   │   ├── bsp_entity.h / .cpp     # Map entity parsing
+│   │   └── wad_file.h / .cpp       # WAD3 archive reader
 │   ├── nav/
 │   │   ├── nav_types.h             # Navigation mesh constants and structs
 │   │   ├── nav_area.h / .cpp       # Area quad elevation and connections
 │   │   ├── nav_grid.h / .cpp       # Spatial uniform 2D grid
 │   │   ├── nav_path.h / .cpp       # A* Pathfinding engine
-│   │   └── nav_file.h / .cpp       # .nav file parser and serializer
-│   ├── amxx/
-│   │   ├── amxx_api.h / .cpp       # Module lifecycle and exports
-│   │   ├── amxx_bsp_natives.cpp    # BSP Pawn natives
-│   │   └── amxx_nav_natives.cpp    # NAV Pawn natives
-│   ├── cli/
-│   │   └── main.cpp                # Standalone verification & benchmark CLI
-│   └── editor/                     # NavStudio 3D desktop visualizer & editor
-│       ├── camera/                 # FPS Flycam, Orbit, and 2D cameras
-│       ├── commands/               # Command pattern undo/redo engine
-│       ├── glad/                   # Embedded OpenGL 3.3 Core loader
-│       ├── math/                   # Matrix4 MVP and unprojection math
-│       ├── render/                 # BSP and NavMesh OpenGL renderers and shaders
-│       ├── scene/                  # Scene manager and raycast picker
-│       ├── ui/                     # Dear ImGui dockspace, inspector, and hierarchy
-│       └── main.cpp                # GLFW window and application loop
+│   │   ├── nav_file.h / .cpp       # .nav file parser and serializer
+│   │   ├── nav_generator.h / .cpp  # Mesh generation algorithms
+│   │   └── async_pathfinder.h / .cpp # Asynchronous threaded pathfinder
+│   └── amxx/
+│       ├── amxx_api.h / .cpp       # Module lifecycle and exports
+│       ├── amxx_bsp_natives.cpp    # BSP Pawn natives
+│       └── amxx_nav_natives.cpp    # NAV Pawn natives
 ├── scripting/
 │   ├── include/
 │   │   └── navmesh.inc             # Pawn include file with documentation
 │   └── navmesh_test.sma            # Example test plugin
-├── CMakeLists.txt                  # Modular CMake configuration (nav_core, amxx, cli, editor)
+├── CMakeLists.txt                  # Modular CMake configuration
 ├── Makefile                        # Linux direct Makefile
 ├── .gitignore
 ├── LICENSE
@@ -108,8 +95,6 @@ nav_module/
 1. Download the latest release from the [GitHub Releases](https://github.com/ZeroDiamond7601/amxmodx-navmesh/releases) page:
    * **Linux Module:** `navmesh_amxx_i386.so` (Compiled in Debian Bookworm with static libstdc++)
    * **Windows Module:** `navmesh_amxx.dll`
-   * **Windows GUI Editor:** `nav_editor.exe`
-   * **Command-Line Tool:** `nav_cli.exe` / `nav_cli`
 2. Copy the module binary to your server:
    * `cstrike/addons/amxmodx/modules/navmesh_amxx_i386.so` (Linux)
    * `cstrike/addons/amxmodx/modules/navmesh_amxx.dll` (Windows)
@@ -129,8 +114,6 @@ nav_module/
 | Option | Default | Description |
 | :--- | :--- | :--- |
 | `BUILD_AMXX_MODULE` | `ON` | Compiles the AMX Mod X server binary (`navmesh_amxx`) |
-| `BUILD_CLI` | `ON` | Compiles the headless map verification tool (`nav_cli`) |
-| `BUILD_EDITOR` | `OFF` | Compiles the NavStudio 3D GUI editor (`nav_editor`) |
 
 ### Linux (Debian / Ubuntu x86)
 
@@ -140,22 +123,12 @@ sudo dpkg --add-architecture i386
 sudo apt-get update
 sudo apt-get install -y gcc-multilib g++-multilib cmake make
 
-# 2. Build the AMXX module and CLI tool
+# 2. Build the AMXX module
 cmake -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build --config Release -j$(nproc)
 
-# Output binaries:
+# Output binary:
 # build/navmesh_amxx_i386.so
-# build/nav_cli
-```
-
-To build NavStudio on Linux, install `libgl1-mesa-dev` and `libx11-dev`, then pass `-DBUILD_EDITOR=ON`:
-```bash
-sudo apt-get install -y libgl1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_EDITOR=ON
-cmake --build build --config Release -j$(nproc)
-
-# Output binary: build/nav_editor
 ```
 
 ### Windows (MSVC)
@@ -163,107 +136,14 @@ cmake --build build --config Release -j$(nproc)
 Open **Developer Command Prompt for Visual Studio** or PowerShell:
 
 ```powershell
-# 1. Configure with the GUI editor enabled
-cmake -B build -A Win32 -DBUILD_EDITOR=ON
+# 1. Configure CMake
+cmake -B build -A Win32
 
 # 2. Compile the Release build
 cmake --build build --config Release
 
-# Output binaries:
+# Output binary:
 # build\Release\navmesh_amxx.dll
-# build\Release\nav_cli.exe
-# build\Release\nav_editor.exe
-```
-
----
-
-## NavStudio Usage Guide
-
-Launch NavStudio by double-clicking `nav_editor.exe` or directly from the terminal:
-
-```cmd
-nav_editor.exe cstrike/maps/de_dust2.bsp
-```
-
-### Loading Maps and Navigation Meshes
-
-NavStudio supports multiple methods to open files:
-* **Drag and Drop:** Drag any `.bsp` or `.nav` file directly from Windows Explorer or your file manager into the 3D viewport window. A dedicated visual drop target highlights the zone, and real-time animated loading progress bars provide live feedback as geometry and navigation data are processed.
-* **Native File Dialog:** Select `File -> Open BSP Map...` (`Ctrl + O`) or `File -> Open NAV Mesh...` (`Ctrl + Shift + O`).
-* **Tool Palette Buttons:** Click `Open BSP Map...` or `Open NAV Mesh...` in the Tool Palette on the left sidebar.
-* **Direct Path Prompt:** Select `File -> Open File from Path...` to type or paste any file path directly.
-* **Automatic Pairing:** Loading a `.bsp` map automatically searches for and loads the matching `.nav` file in the same directory.
-* **Asynchronous Progress:** Map parsing and navigation extraction run in a dedicated background worker thread, ensuring responsive UI frame rates and smooth progress animations without freezing.
-
-
-### Controls and Shortcuts
-
-| Action | Shortcut | Description |
-| :--- | :--- | :--- |
-| **Move Camera (Flycam)** | `W / A / S / D` | Fly forward, backward, strafe left and right |
-| **Elevate Camera Up / Down** | `E / Q` | Fly vertically up and down |
-| **Look Around** | Right-Click + Drag | First-person camera freelook |
-| **Adjust Camera Speed** | Mouse Wheel | Speed up or slow down flycam (holding Right-Click) |
-| **Orbit Selected Area** | `Alt` + Left-Click + Drag | Orbit around the selected area centroid |
-| **Focus Camera on Selection** | `F` | Smoothly centers camera view on selected area |
-| **Reset Camera** | `Home` | Restores camera position and orientation to defaults |
-| **Select NavArea / Drag Handle**| Left-Click | Selects area or grabs gizmo arrows / edges / corners |
-| **Move / Grab Area** | `G` | Area smoothly follows mouse cursor in 3D ground plane |
-| **Radial Scale Area** | `S` | Smooth screen-space radial scaling |
-| **Constrain Axis** | `X` / `Y` / `Z` | Constrain Move or Scale strictly to X, Y, or Z axis |
-| **Extrude Selected Edge** | `E` or `Shift` + Drag Edge | Extrudes edge outward creating connected adjacent area |
-| **Split / Slice Area** | `Shift + X` | Slices area in half along width/length (Hammer clipping) |
-| **Merge Adjacent Areas** | `Shift + M` | Combines adjacent collinear areas into single quad |
-| **Decrease / Increase Grid** | `[` / `]` | Halves or doubles Hammer grid size (1 to 512 units) |
-| **Toggle Grid Snapping** | `Shift + W` | Toggles grid snapping on or off |
-| **Connect Mode** | `C` | Click candidate area (Left=2-Way, Shift+Left=1-Way) |
-| **Rotate Area 90°** | `R` | Rotates area 90 degrees around center |
-| **Duplicate Area** | `Shift + D` | Duplicates selected area and enters Move mode |
-| **Delete Area** | `X` / `Delete` | Deletes selected area with lossless connection undo |
-| **Snap Area to Floor** | `Space` | Snaps area elevation corners to underlying BSP floor |
-| **Undo / Redo** | `Ctrl + Z` / `Ctrl + Y` | Full multi-step undo and redo history |
-| **Open Recent File** | Menu `File -> Open Recent` | Quickly load recently opened `.bsp` and `.nav` files |
-| **Open BSP Map** | `Ctrl + O` | Opens native file dialog for GoldSrc maps |
-| **Open NAV Mesh** | `Ctrl + Shift + O` | Opens native file dialog for `.nav` files |
-| **Save Navigation Mesh** | `Ctrl + S` | Overwrites active `.nav` file |
-| **Save NAV Mesh As** | `Ctrl + Shift + S` | Saves navigation mesh to new target file |
-
-
----
-
-## Standalone CLI Tool (`nav_cli`)
-
-The project includes a headless CLI tool to analyze maps, verify geometry, and benchmark A* pathfinding without running a game server:
-
-```bash
-./build/nav_cli cstrike/maps/de_dust2.bsp czero/maps/de_dust2.nav
-```
-
-**Sample Output:**
-```text
-=========================================================
- NavMesh Core - CS 1.6 BSP & NAV Verification CLI
-=========================================================
-
-[BSP] Loading: de_dust2.bsp...
-  -> BSP loaded successfully!
-  -> Entities: 147
-  -> Models: 43
-  -> CT Spawns: 32
-  -> T Spawns: 32
-
-[NAV] Loading: de_dust2.nav...
-  -> NAV loaded successfully!
-  -> Format version: 5
-  -> Total Navigation Areas: 718
-  -> Places: TSpawn, BombsiteB, CTSpawn, Side, Middle, BombsiteA...
-
-[PATHFINDING] Running A* Benchmark...
-  -> Start Position: (-1680, -840, 128)
-  -> Goal Position:  (280, 2240, 32)
-  -> Path found!
-  -> Waypoints count: 18
-  -> Total Path length: 3412.50 units
 ```
 
 ---
