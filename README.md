@@ -7,9 +7,6 @@
 
 **NavMesh Core** is a high-performance C++ module for **AMX Mod X** (GoldSrc / Counter-Strike 1.6 / Counter-Strike: Condition Zero). It provides direct, memory-mapped access to GoldSrc **`.bsp`** maps (Version 30) and Counter-Strike **`.nav`** navigation meshes (Versions 4 & 5), featuring ultra-fast collision tracing, spatial partitioning, and full **A\* pathfinding** with portal smoothing.
 
-> [!TIP]
-> **Companion 3D Editor:** For visual 3D navigation mesh editing, inspection, and auto-generation, see **[NavStudio](https://github.com/ZeroDiamond7601/NavStudio)**!
-
 ---
 
 ## Features
@@ -40,9 +37,6 @@
 * **Line-of-Sight Smoothing:** Optional string-pulling optimization that checks line-of-sight against BSP geometry to remove redundant waypoints.
 * **Active Path Handles:** High-performance path instance management exposed directly to AMXX Pawn scripting.
 * **Asynchronous Offloaded Pathfinding:** Non-blocking worker threads handle multi-route A* calculations and dispatch results via event forwards (`nav_on_path_computed`).
-
-### Companion 3D Editor & Tools
-For visual 3D navigation mesh editing, inspection, and auto-generation, see **[NavStudio](https://github.com/ZeroDiamond7601/NavStudio)**, our standalone visualizer and editing suite!
 
 ---
 
